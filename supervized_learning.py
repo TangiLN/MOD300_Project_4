@@ -198,7 +198,7 @@ def lstm(dataset=""):
     # Build
     input_layer = Input(shape=(WINDOW_SIZE, 1))
     x = LSTM(128, return_sequences=True)(input_layer)
-    x = Dropout(0.2)(x) # Test avec 0.1 au lieux de 0.2
+    x = Dropout(0.2)(x)
     x = LSTM(64, return_sequences=False)(x)
     x = Dropout(0.2)(x)
     output_layer = Dense(1)(x)
@@ -255,7 +255,7 @@ def plot_dataset(dataset="",linear=False,odeint=False,polynomial=False,order_pol
         ax1.plot(t, y_pred, color='darkgreen', linestyle='--', label='Linear Regression')
     if odeint : 
         y_odeint=calculate_precise(name=dataset)
-        ax1.plot(t, y_odeint, label='Modèle Z(t)')
+        ax1.plot(t, y_odeint, label='Model odeint Z(t)')
     if polynomial :
         y_polynomial= polynomial_regression(t,Z,order=order_polynomial)
         ax1.plot(t,y_polynomial,color='brown',label="Polynomial Regression")

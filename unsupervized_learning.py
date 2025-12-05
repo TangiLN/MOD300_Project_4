@@ -19,10 +19,10 @@ class topic1_generation :
         :param self: Class topic1_generation
         """
         self.cluster_colors = np.array([
-            [255, 0, 0],    # Cluster 0 : Rouge
-            [0, 255, 0],    # Cluster 1 : Vert
-            [0, 0, 255],    # Cluster 2 : Bleu
-            [255, 255, 0]   # Cluster 3 : Jaune
+            [255, 0, 0],    # Cluster 0 : Red
+            [0, 255, 0],    # Cluster 1 : green
+            [0, 0, 255],    # Cluster 2 : Blue
+            [255, 255, 0]   # Cluster 3 : Yellow
         ], dtype=np.uint8)
     def generate_bird_eye_view(self):
         """Function to generate the plot of the birds Eye View from mw_plot"""
