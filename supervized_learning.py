@@ -149,18 +149,18 @@ def lstm(dataset=""):
     if dataset=="Guinea":
         CSV_PATH = "data/ebola_cases_guinea.dat" 
         WINDOW_SIZE  = 15
-        EPOCHS       = 75 # réduire ça cest bien 
-        BATCH_SIZE   = 32 # Tester avec batch size
+        EPOCHS       = 75 
+        BATCH_SIZE   = 32
     elif dataset=="Sierra Leone":
         CSV_PATH = "data/ebola_cases_sierra_leone.dat" 
         WINDOW_SIZE  = 10
-        EPOCHS       = 150 # réduire ça cest bien 
-        BATCH_SIZE   = 16 # Tester avec batch size
+        EPOCHS       = 150
+        BATCH_SIZE   = 16
     elif dataset=="Liberia":
         CSV_PATH = "data/ebola_cases_liberia.dat" 
         WINDOW_SIZE  = 10
-        EPOCHS       = 150 # réduire ça cest bien 
-        BATCH_SIZE   = 16 # Tester avec batch size
+        EPOCHS       = 150
+        BATCH_SIZE   = 16
     else : 
         print("Wrong dataset name ")
         return
@@ -201,7 +201,6 @@ def lstm(dataset=""):
     x = Dropout(0.2)(x) # Test avec 0.1 au lieux de 0.2
     x = LSTM(64, return_sequences=False)(x)
     x = Dropout(0.2)(x)
-    # x = Dense(32, activation="relu")(x)
     output_layer = Dense(1)(x)
     model = Model(inputs=input_layer, outputs=output_layer)
     model.compile(loss="mean_squared_error", optimizer="adam")
@@ -274,5 +273,5 @@ def plot_dataset(dataset="",linear=False,odeint=False,polynomial=False,order_pol
     plt.grid(axis="both")
     plt.title("Ebola outbreaks in "+dataset)
     lines, labels = ax1.get_legend_handles_labels()
-    ax1.legend(lines, labels, loc='upper left')
+    ax1.legend(lines, labels, loc='upper left',fontsize=10)
     plt.show()

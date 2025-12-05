@@ -94,14 +94,14 @@ class topic1_generation :
             grey_mask = np.logical_and(grey > min_grey, grey <= max_grey)
             x,y=np.where(grey_mask)
         elif type== 'Red':
-            red_treshold=80
-            red_mask=((array[:,:,0 ] > red_treshold) & 
+            red_threshold=80
+            red_mask=((array[:,:,0 ] > red_threshold) & 
                     (array[:, :, 0] > array[:, :, 1] * 1.2) & 
                     (array[:, :, 0] > array[:, :, 2] * 1.2))
             x, y = np.where(red_mask)
         elif type=='Blue':
-            blue_treshold=150
-            blue_mask=((array[:,:,2 ] > blue_treshold) & 
+            blue_threshold=150
+            blue_mask=((array[:,:,2 ] > blue_threshold) & 
                     (array[:, :, 2] > array[:, :, 0] * 1.2) & 
                     (array[:, :, 2] > array[:, :, 1] * 1.2))
             x, y = np.where(blue_mask)
@@ -114,7 +114,6 @@ class topic1_generation :
             print("Wrong encoding selection : Blue - Red -Grey -Dark")
             return
         plt.scatter(x, y, s=0.1)
-        #plt.gca().invert_yaxis()
         return x,y
     def k_mean_clustering(self,data,plot=True):
         """
@@ -148,8 +147,7 @@ class topic1_generation :
             s=5,
             marker='o'
         )
-        plt.title("Clustering Superposé sur l'Image Originale")
-        # plt.gca().invert_yaxis() # Important si vous utilisez les indices d'array (0,0 en haut à gauche)
+        plt.title("Over impose Clustering on the original image")
         plt.axis('off')
         plt.show()
     def run(self,array,type="Grey"):
