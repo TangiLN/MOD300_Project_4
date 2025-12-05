@@ -35,7 +35,7 @@ class topic1_generation :
         )
         mw1.title = "Birds Eyes View"
         mw1.scatter(8 * u.kpc, 0 * u.kpc, c="r", s=2)
-    def generate_skymap(self,center=(0,0),radius=(8800,8800),option=None,name_png="galaxy.png"):
+    def generate_skymap(self,center=(0,0),radius=(8800,8800),option=None,name_png="galaxy.png",delete_axis=True):
         """
         Function to generate the different viw of the Milky Way
         
@@ -43,6 +43,7 @@ class topic1_generation :
         :param radius: Size of the radius, tuple(length,width)
         :param option: String to make a plot of a specific place
         :param name_png: Name of the image that will be stored
+        :param axis : Bool that allow the plotting or not of the axis,useful for the image processing later
         """
         if option == "M31":
             m31_coords = SkyCoord.from_name("M31")
@@ -59,12 +60,20 @@ class topic1_generation :
         )
         fig, ax = plt.subplots(figsize=(5, 5))
         mw1.transform(ax)
+        if delete_axis :
+            ax.set_axis_off()
+            fig.subplots_adjust(
+                left=0, bottom=0,
+                right=1, top=1, 
+                wspace=0, hspace=0
+            )
         mw1.savefig(name_png)
     def convert_png_to_rgb(self,img=None):
         """
         Function to Convert the image generated to an array
         Input -> img : name if the image to convert
         """
+        #Security to be sure that we have an image passed to the function
         assert (img is not None), "Please insert an image as a parameter"
         image=Image.open(img)
         image_rgb = image.convert('RGB')
@@ -78,7 +87,7 @@ class topic1_generation :
         :param type: type of encoding to choose
         """
         x , y = [], []
-        grey = np.sum(array[: , : , :] * np.array([0.299, 0.587, 0.114]), axis=2)  # From RGB to grey
+        grey = np.sum(array[: , : , :] * np.array([0.299, 0.587, 0.114]), axis=2)
         if type=='Grey':
             min_grey = 200 
             max_grey = 230
@@ -101,10 +110,12 @@ class topic1_generation :
             max_dark=40
             dark_mask=np.logical_and(grey >=min_dark , grey < max_dark)
             x, y = np.where(dark_mask)
+        else : 
+            print("Wrong encoding selection : Blue - Red -Grey -Dark")
+            return
         plt.scatter(x, y, s=0.1)
-        # plt.gca().invert_yaxis()
+        #plt.gca().invert_yaxis()
         return x,y
-    
     def k_mean_clustering(self,data,plot=True):
         """
         Function to make the K_Mean clustering 
@@ -122,27 +133,33 @@ class topic1_generation :
 
     def over_impose(self, image_array, data_kmean, labels):
         """
-        Fonction alternative utilisant scatter pour visualiser clairement les 4160 points.
+        Function to over-impose the image and cluster.
+        Inputs -> image_array : The image represented by an array generated before
+                  data_kmean : Coordinate of the points found with kmean funciton
+                  labels : labels of th
         """
-        
-        # 1. Utiliser le plot original comme toile de fond si nécessaire (optionnel mais clair)
         plt.figure(figsize=(8, 8))
-        plt.imshow(image_array) # Affiche l'image originale en arrière-plan
-        
-        # Prépare les couleurs pour le scatter
+        plt.imshow(image_array)
         colors = [self.cluster_colors[label % len(self.cluster_colors)] / 255.0 for label in labels]
-        
-        # 2. Scatter Plot des points clusterisés
-        # data_kmean[1] sont les colonnes (X-axis), data_kmean[0] sont les lignes (Y-axis)
         plt.scatter(
-            data_kmean[:, 1], # X-axis (colonnes/width)
+            data_kmean[:, 1],
             data_kmean[:, 0],
             c=colors, 
-            s=5, # Augmenter la taille des points (s=5) pour qu'ils soient visibles
+            s=5,
             marker='o'
         )
-        
         plt.title("Clustering Superposé sur l'Image Originale")
         # plt.gca().invert_yaxis() # Important si vous utilisez les indices d'array (0,0 en haut à gauche)
         plt.axis('off')
         plt.show()
+    def run(self,array,type="Grey"):
+        """
+        Function to run a full sequence, useful for task 7 to avoid code duplication
+        :param array: array of the image to work on 
+        :param type: Encoding style 
+        """
+        data=self.encode_array(array=array,type=type)
+        data_for_kmeans = np.column_stack(data)
+        print(f"Number of pixels clustered: {len(data[0])}")
+        label=self.k_mean_clustering(data=data_for_kmeans)
+        self.over_impose(image_array=array,data_kmean=data_for_kmeans,labels=label)

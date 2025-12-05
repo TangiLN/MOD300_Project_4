@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit 
+from scipy.optimize import curve_fit
 from scipy.integrate import odeint
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
@@ -15,7 +15,7 @@ from sklearn.metrics import mean_absolute_percentage_error, mean_absolute_error,
 from keras import Model
 from keras.layers import Input, Dense, Dropout, LSTM
 def B_ebola(B0, t, lmbda):
-    """ 
+    """
     New function for the time-dependent transmission rate
     Input : B0 : initial transmission rate
             t : time
@@ -26,17 +26,16 @@ def B_ebola(B0, t, lmbda):
 def f_ebola(y,t,B0,lmbda):
     """ 
     Function to solve the model for ebola data
-    
     """
     S,E,Z,R=y
     N=S+Z+E+R
     gamma=1/7
     sigma=1/9.7
     betha=B_ebola(B0,t,lmbda) # B0,t,lmbda
-    dSdt=-betha*S*Z /N 
-    dEdt=betha*S*Z / N - (sigma*E) 
-    dZdt=(sigma*E) - gamma*Z 
-    dRdt=gamma*Z   
+    dSdt=-betha*S*Z /N
+    dEdt=betha*S*Z / N - (sigma*E)
+    dZdt=(sigma*E) - gamma*Z
+    dRdt=gamma*Z
     return np.array([dSdt,dEdt,dZdt,dRdt])
 def calculate_precise(name="Guinea"):
     t,Z,Ct=read_data(dataset=name)
@@ -44,12 +43,10 @@ def calculate_precise(name="Guinea"):
     bds = ((0.0, 0.0), (np.inf, np.inf))
     popt, pcov = curve_fit(non_linear_func, t, Ct, bounds=bds)
     print('Curve-fit: beta0={}, lambda={}.'.format(popt[0], popt[1]))
-
     U0_ebola=np.array([N_ebola-1,0,1,0])
     # Call odeint to see the solution with the lambda and betha optimized
     sol_ebola = odeint(f_ebola, U0_ebola, t, args=(popt[0], popt[1]))
-    S_ebola, E_ebola, Z_ebola, R_ebola = sol_ebola.T 
-    # Plot the result 
+    S_ebola, E_ebola, Z_ebola, R_ebola = sol_ebola.T
     return Z_ebola
 def read_data(dataset=""):
     """ 
@@ -60,19 +57,19 @@ def read_data(dataset=""):
                  Ct -> Cumulative value of disease from dataset 
     """
     if dataset=="Guinea":
-        colonnes_2_3 = Guinea_set.iloc[:, 1:3]  # Take all lines and first and second columns 
+        colonnes_2_3 = Guinea_set.iloc[:, 1:3]
     elif dataset=="Liberia":
-        colonnes_2_3 = Liberia_set.iloc[:, 1:3]  # Take all lines and first and second columns
+        colonnes_2_3 = Liberia_set.iloc[:, 1:3]
     elif dataset=="Sierra Leone":
-        colonnes_2_3 = Sierra_set.iloc[:, 1:3]  # Take all lines and first and second columns
-    else:
-        print("Please choose a valid dataset: Guinea, Liberia or Sierra")
+        colonnes_2_3 = Sierra_set.iloc[:, 1:3]
+    else : 
+        print("Wrong dataset name : Guinea - Liberia - Sierra Leone")
+        return
     valeurs=colonnes_2_3.values
     t=valeurs[:,0]
     Z=valeurs[:,1]
     Ct=np.cumsum(Z)
     return t,Z, Ct
-
 Guinea_set=pd.read_csv("data/ebola_cases_guinea.dat",sep="\s+")
 Liberia_set=pd.read_csv("data/ebola_cases_liberia.dat",sep="\s+")
 Sierra_set=pd.read_csv("data/ebola_cases_sierra_leone.dat",sep="\s+")
@@ -123,8 +120,8 @@ def neural_network(t,Z):
         [
             Dense(units=128,activation='relu',input_shape=(1,)),
             Dense(units=64,activation='relu'),
-            Dense(units=32, activation='relu'), # Nouvelle couche
-            Dense(1) # Output layer with 1 neuron for regression
+            Dense(units=32, activation='relu'),
+            Dense(1)
         ]
     )
     model.compile(optimizer='adam',loss='mse',metrics=['mae'])
@@ -135,7 +132,6 @@ def neural_network(t,Z):
               verbose=0)
     Z_pred_nn = model.predict(X_scaled)
     return Z_pred_nn
-
 def polynomial_regression(t,Z,order=2):
     X=t.reshape(-1,1)
     poly = PolynomialFeatures(order,include_bias=False)
@@ -147,7 +143,7 @@ def polynomial_regression(t,Z,order=2):
 def lstm(dataset=""):
     """
     Function to apply an LSTM on the dataset
-        Input -> dataset: Name of the dataset that we want to use,the window parameter of the lstm are changing 
+    Input -> dataset: Name of the dataset that we want to use,the window parameter of the lstm are changing 
                     because the dataset are not the same size so I use different parametrization for each
     """
     if dataset=="Guinea":
@@ -165,7 +161,9 @@ def lstm(dataset=""):
         WINDOW_SIZE  = 10
         EPOCHS       = 150 # réduire ça cest bien 
         BATCH_SIZE   = 16 # Tester avec batch size
-    
+    else : 
+        print("Wrong dataset name ")
+        return
     df= pd.read_csv(CSV_PATH,sep='\s+')
     df.drop('Days', axis=1, inplace=True)
     df['Date'] = pd.to_datetime(df['Date'])
@@ -221,13 +219,8 @@ def lstm(dataset=""):
     y_pred = scaler.inverse_transform(y_pred_scaled)
     # Use the Meanabsolute error to have an idea of the precision of the model
     mae  = mean_absolute_error(y_true, y_pred)
-    mape = mean_absolute_percentage_error(y_true, y_pred)
-    acc  = 1 - mape
-
     print("\n=== Test Results ===")
     print(f"MAE: ${mae:.2f}")
-    print(f"Accuracy: {acc*100:.2f}%")
-
     # Plot of the spliting between train and test and the LSTM prediciton
     plt.figure(figsize=(15, 6), dpi=150)
     plt.plot(train_df["Date"], train_df["NumOutbreaks"], color="black", lw=2, label="Training set")
@@ -280,5 +273,6 @@ def plot_dataset(dataset="",linear=False,odeint=False,polynomial=False,order_pol
     ax2.set_ylabel('Cumulative number of outbreak ')
     plt.grid(axis="both")
     plt.title("Ebola outbreaks in "+dataset)
+    lines, labels = ax1.get_legend_handles_labels()
+    ax1.legend(lines, labels, loc='upper left')
     plt.show()
-
